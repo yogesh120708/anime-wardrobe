@@ -47,7 +47,10 @@ function Index() {
 
   useEffect(() => {
     const s: Product[] = JSON.parse(localStorage.getItem(KEY) ?? "[]");
-    if (s.length) setItems(s.map((i) => ({ ...i, image: i.image ?? SEED.find((p) => p.id === i.id)?.image })));
+    if (s.length) setItems(s.map((i) => {
+      const img = i.image ?? SEED.find((p) => p.id === i.id)?.image;
+      return img ? { ...i, image: img } : i;
+    }));
     setLoaded(true);
   }, []);
   useEffect(() => { if (loaded) localStorage.setItem(KEY, JSON.stringify(items)); }, [items, loaded]);
