@@ -1,6 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import hero from "@/assets/hero.jpg";
+import hoodieRonin from "@/assets/hoodie-ronin.jpg";
+import teeShinobi from "@/assets/tee-shinobi.jpg";
+import jacketTitan from "@/assets/jacket-titan.jpg";
+import jacketHaori from "@/assets/jacket-haori.jpg";
+import teeSpirit from "@/assets/tee-spirit.jpg";
+import hoodieCursed from "@/assets/hoodie-cursed.jpg";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -16,15 +22,15 @@ export const Route = createFileRoute("/")({
   component: Index,
 });
 
-type Product = { id: string; name: string; series: string; category: string; price: number; stock: number };
+type Product = { id: string; name: string; series: string; category: string; price: number; stock: number; image?: string };
 
 const SEED: Product[] = [
-  { id: "1", name: "Crimson Ronin Hoodie", series: "Original", category: "Hoodie", price: 59, stock: 24 },
-  { id: "2", name: "Shinobi Leaf Tee", series: "Ninja Saga", category: "T-Shirt", price: 29, stock: 40 },
-  { id: "3", name: "Titan Wall Bomber", series: "Titan Arc", category: "Jacket", price: 89, stock: 6 },
-  { id: "4", name: "Demon Slash Haori", series: "Blade Night", category: "Jacket", price: 75, stock: 0 },
-  { id: "5", name: "Spirit Bath Oversized Tee", series: "Ghibli Mood", category: "T-Shirt", price: 32, stock: 18 },
-  { id: "6", name: "Cursed Energy Hoodie", series: "Jujutsu Days", category: "Hoodie", price: 64, stock: 3 },
+  { id: "1", name: "Crimson Ronin Hoodie", series: "Original", category: "Hoodie", price: 59, stock: 24, image: hoodieRonin },
+  { id: "2", name: "Shinobi Leaf Tee", series: "Ninja Saga", category: "T-Shirt", price: 29, stock: 40, image: teeShinobi },
+  { id: "3", name: "Titan Wall Bomber", series: "Titan Arc", category: "Jacket", price: 89, stock: 6, image: jacketTitan },
+  { id: "4", name: "Demon Slash Haori", series: "Blade Night", category: "Jacket", price: 75, stock: 0, image: jacketHaori },
+  { id: "5", name: "Spirit Bath Oversized Tee", series: "Ghibli Mood", category: "T-Shirt", price: 32, stock: 18, image: teeSpirit },
+  { id: "6", name: "Cursed Energy Hoodie", series: "Jujutsu Days", category: "Hoodie", price: 64, stock: 3, image: hoodieCursed },
 ];
 const KEY = "otaku-inventory";
 const empty = { name: "", series: "", category: "T-Shirt", price: 0, stock: 0 };
@@ -40,8 +46,11 @@ function Index() {
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
-    const s = localStorage.getItem(KEY);
-    if (s) setItems(JSON.parse(s));
+    const s: Product[] = JSON.parse(localStorage.getItem(KEY) ?? "[]");
+    if (s.length) setItems(s.map((i) => {
+      const img = i.image ?? SEED.find((p) => p.id === i.id)?.image;
+      return img ? { ...i, image: img } : i;
+    }));
     setLoaded(true);
   }, []);
   useEffect(() => { if (loaded) localStorage.setItem(KEY, JSON.stringify(items)); }, [items, loaded]);
@@ -105,8 +114,12 @@ function Index() {
         <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {shown.map((p, idx) => (
             <article key={p.id} className="group overflow-hidden rounded-sm border border-border bg-card transition hover:border-primary">
-              <div className="relative flex aspect-square items-center justify-center bg-gradient-to-br from-secondary to-background">
-                <span className="font-display text-[9rem] text-primary/20 transition group-hover:scale-110 group-hover:text-primary/40">{String(idx + 1).padStart(2, "0")}</span>
+              <div className="relative aspect-square overflow-hidden bg-gradient-to-br from-secondary to-background">
+                {p.image ? (
+                  <img src={p.image} alt={p.name} width={1024} height={1024} loading="lazy" className="h-full w-full object-cover transition duration-300 group-hover:scale-105" />
+                ) : (
+                  <span className="font-display text-[9rem] text-primary/20 transition group-hover:scale-110 group-hover:text-primary/40">{String(idx + 1).padStart(2, "0")}</span>
+                )}
                 <span className="absolute left-3 top-3 rounded-sm bg-accent px-2 py-0.5 text-xs font-bold uppercase text-accent-foreground">{p.category}</span>
                 {p.stock === 0 && <span className="absolute right-3 top-3 rounded-sm bg-destructive px-2 py-0.5 text-xs font-bold uppercase text-destructive-foreground">Sold out</span>}
               </div>
@@ -151,7 +164,12 @@ function Index() {
               <tbody>
                 {items.map((p) => (
                   <tr key={p.id} className="border-t border-border">
-                    <td className="p-3 font-medium">{p.name}</td>
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        {p.image ? <img src={p.image} alt={p.name} width={40} height={40} loading="lazy" className="h-10 w-10 rounded-sm object-cover" /> : <span className="h-10 w-10 rounded-sm bg-secondary" />}
+                        <span className="font-medium">{p.name}</span>
+                      </div>
+                    </td>
                     <td className="p-3 text-muted-foreground">{p.series}</td>
                     <td className="p-3">{p.category}</td>
                     <td className="p-3">${p.price}</td>
